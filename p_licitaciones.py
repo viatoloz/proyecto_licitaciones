@@ -1,18 +1,30 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.set_page_config(page_title="Análisis Licitaciones", layout="wide")
+st.set_page_config(page_title="Análisis Proyecto Licitaciones", layout="wide")
 
 @st.cache_data
 
 def cargar_datos():
-    df2023 = pd.read_parquet("Copy of data_lic_Municipalidades_2023.parquet")
-    df2024 = pd.read_parquet("Copy of data_lic_Municipalidades_2024.parquet")
+    columnas = [
+        "CodigoLicitacion", "MontoEstimadoLicitacion", "FuenteFinanciamiento",
+        "RubroN1", "Proveedor", "ResultadoOferta", "TamanoProveedor",
+        "FechaPublicacion", "FechaAdjudicacion", "TipoLicitacion",
+        "PublicidadOfertasTecnicas", "Institucion"
+    ]
+    df2023 = pd.read_parquet("Copy of data_lic_Municipalidades_2023.parquet", columns=columnas).head(50000)
     df2023['Año'] = 2023
-    df2024['Año'] = 2024
-    return pd.concat([df2023, df2024], ignore_index=True)
+
+    try:
+        df2024 = pd.read_parquet("Copy of data_lic_Municipalidades_2024.parquet", columns=columnas).head(50000)
+        df2024['Año'] = 2024
+        df_total = pd.concat([df2023, df2024], ignore_index=True)
+    except FileNotFoundError:
+        df_total = df2023
+
+    return df_total
 
 DF = cargar_datos()
 
