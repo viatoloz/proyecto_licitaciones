@@ -3,8 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.set_page_config(page_title="Análisis Proyecto Licitaciones", layout="wide")
+st.set_page_config(page_title="Análisis Licitaciones", layout="wide")
 
+# ----------- CARGA DE DATOS -----------
 @st.cache_data
 
 def cargar_datos():
