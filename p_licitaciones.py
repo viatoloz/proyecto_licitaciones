@@ -7,36 +7,20 @@ st.set_page_config(page_title="Análisis Licitaciones", layout="wide")
 
 # ----------- CARGA DE DATOS -----------
 @st.cache_data
-
 def cargar_datos():
-    columnas = [
-        "CodigoLicitacion", "MontoEstimadoLicitacion", "FuenteFinanciamiento",
-        "RubroN1", "Proveedor", "ResultadoOferta", "TamanoProveedor",
-        "FechaPublicacion", "FechaAdjudicacion", "TipoLicitacion",
-        "PublicidadOfertasTecnicas", "Institucion"
-    ]
-    df2023 = pd.read_parquet("Copy of data_lic_Municipalidades_2023.parquet", columns=columnas).head(50000)
-    df2023['Año'] = 2023
-
-    try:
-        df2024 = pd.read_parquet("Copy of data_lic_Municipalidades_2024.parquet", columns=columnas).head(50000)
-        df2024['Año'] = 2024
-        df_total = pd.concat([df2023, df2024], ignore_index=True)
-    except FileNotFoundError:
-        df_total = df2023
-
-    return df_total
+    df = pd.read_parquet("data_licitaciones_2023_2024_reducido.parquet")
+    return df
 
 DF = cargar_datos()
 
-# ----------- SIDEBAR DE NAVEGACION -----------
+# ----------- SIDEBAR DE NAVEGACIÓN -----------
 st.sidebar.title("Navegación")
 seccion = st.sidebar.radio("Ir a sección:", [
     "Introducción", "Gasto Público", "Competitividad", "Eficiencia", "Transparencia", "Municipios", "Hallazgos", "Conclusiones"])
 
 # ----------- FILTROS -----------
 st.sidebar.markdown("---")
-selected_year = st.sidebar.selectbox("Selecciona el año", options=DF['Año'].unique())
+selected_year = st.sidebar.selectbox("Selecciona el año", options=sorted(DF['Año'].unique()))
 selected_rubro = st.sidebar.selectbox("Filtrar por Rubro (opcional)", options=["Todos"] + sorted(DF['RubroN1'].dropna().unique()))
 selected_muni = st.sidebar.selectbox("Filtrar por Municipio (opcional)", options=["Todos"] + sorted(DF['Institucion'].dropna().unique()))
 
@@ -79,7 +63,7 @@ elif seccion == "Competitividad":
     st.header("Objetivo 2: Competitividad del mercado")
 
     st.subheader("Distribución de oferentes por licitación")
-    oferentes = df.groupby("CodigoLicitacion")["Proveedor"].nunique()
+    oferentes = df.groupby("NroLicitacion")["Proveedor"].nunique()
     fig3, ax3 = plt.subplots()
     sns.histplot(oferentes, bins=30, ax=ax3)
     ax3.set_title("Número de oferentes por licitación")
