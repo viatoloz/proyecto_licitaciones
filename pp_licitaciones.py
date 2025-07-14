@@ -137,28 +137,29 @@ elif seccion == "Competitividad":
         )
 
     # ==========================
-    # Top 10 proveedores adjudicados
-    # ==========================
-    st.subheader("Top 10 proveedores adjudicados")
+# Top 10 proveedores adjudicados
+# ==========================
+st.subheader("Top 10 proveedores adjudicados")
 
-    # Contar adjudicaciones por proveedor
-    top_proveedores = df_adjudicada["Proveedor"].value_counts().head(10)
+# Contar adjudicaciones por proveedor
+top_proveedores = df_adjudicada["Proveedor"].value_counts().head(10)
 
-    # Pasar a DataFrame para evitar errores de plot
-    df_top_prov = top_proveedores.reset_index()
-    df_top_prov.columns = ["Proveedor", "Adjudicaciones"]
+# Pasar a DataFrame para evitar errores
+df_top_prov = top_proveedores.reset_index()
+df_top_prov.columns = ["Proveedor", "Adjudicaciones"]
 
-    # Graficar
-    fig5, ax5 = plt.subplots()
-    ax5.bar(df_top_prov["Proveedor"], df_top_prov["Adjudicaciones"], color="#9932CC")
-    ax5.set_ylabel("Cantidad de adjudicaciones")
-    ax5.set_title("Top 10 proveedores adjudicados")
-    ax5.tick_params(axis='x', rotation=45, ha='right')
-    st.pyplot(fig5)
-    st.caption(
-        "Aquí se identifican los proveedores con mayor número de adjudicaciones. Concentrar en pocos proveedores puede reducir eficiencia, "
-        "incrementar riesgos de dependencia y dificultar la participación de nuevos actores en el mercado público."
-    )
+# Graficar manualmente
+fig5, ax5 = plt.subplots()
+ax5.bar(df_top_prov["Proveedor"], df_top_prov["Adjudicaciones"], color="#9932CC")
+ax5.set_ylabel("Cantidad de adjudicaciones")
+ax5.set_title("Top 10 proveedores adjudicados")
+ax5.tick_params(axis='x', rotation=45, ha='right')
+st.pyplot(fig5)
+
+st.caption(
+    "Aquí se identifican los proveedores con mayor número de adjudicaciones. Concentrar en pocos proveedores puede reducir eficiencia, "
+    "incrementar riesgos de dependencia y dificultar la participación de nuevos actores en el mercado público."
+)
 
 # =============================
 # SECCIÓN: EFICIENCIA
