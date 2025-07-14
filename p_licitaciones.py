@@ -38,6 +38,7 @@ st.sidebar.download_button(
     mime="text/csv"
 )
 
+# Secciones
 if seccion == "Introducción":
     st.title("Análisis de Licitaciones Municipales 2023–2024")
     st.markdown("""
@@ -62,6 +63,7 @@ elif seccion == "Gasto Público":
     top_fin = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts().head(10)
     otros = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts()[10:].sum()
     top_fin["Otros"] = otros
+
     fig2, ax2 = plt.subplots(figsize=(6, 6))
     wedges, texts, autotexts = ax2.pie(
         top_fin, labels=None, autopct='%1.1f%%', startangle=90,
@@ -73,7 +75,7 @@ elif seccion == "Gasto Público":
     for autotext in autotexts:
         autotext.set_fontsize(9)
     st.pyplot(fig2)
-    st.caption("Visualizamos las 10 principales fuentes de financiamiento de las licitaciones, agrupando el resto como 'Otros'. Las etiquetas están fuera del gráfico para una lectura más limpia.")
+    st.caption("Visualizamos las 10 principales fuentes de financiamiento de las licitaciones, agrupando el resto como 'Otros'. Las etiquetas están fuera del gráfico para mejor lectura.")
 
 elif seccion == "Competitividad":
     st.header("Objetivo 2: Competitividad del mercado")
@@ -113,6 +115,7 @@ elif seccion == "Eficiencia":
 
 elif seccion == "Transparencia":
     st.header("Objetivo 4: Transparencia")
+
     st.subheader("Tipo de licitación")
     fig6, ax6 = plt.subplots()
     df["TipoLicitacion"].value_counts().plot(kind="bar", ax=ax6, color="#e75480")
