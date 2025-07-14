@@ -137,20 +137,23 @@ elif seccion == "Municipios":
 
 elif seccion == "Comparación 2023 vs 2024":
     st.header("Comparación entre Años: 2023 vs 2024")
+
     df_comp = DF.copy()
     df_comp["FechaPublicacion"] = pd.to_datetime(df_comp["FechaPublicacion"], errors="coerce")
     df_comp["FechaAdjudicacion"] = pd.to_datetime(df_comp["FechaAdjudicacion"], errors="coerce")
     df_comp["Plazo"] = (df_comp["FechaAdjudicacion"] - df_comp["FechaPublicacion"]).dt.days
+
+    # Filtrar valores no válidos
     df_comp = df_comp[df_comp["Plazo"].notna() & (df_comp["Plazo"] >= 0)]
 
     resumen = df_comp.groupby("Año").agg({
         "MontoEstimadoLicitacion": "sum",
-        "NroLlicitacion": "nunique",
+        "NroLicitacion": "nunique",
         "Proveedor": "nunique",
         "Plazo": "mean"
     }).rename(columns={
         "MontoEstimadoLicitacion": "Total Monto Estimado (CLP)",
-        "NroLlicitacion": "Licitaciones Únicas",
+        "NroLicitacion": "Licitaciones Únicas",
         "Proveedor": "Proveedores Únicos",
         "Plazo": "Plazo Promedio (días)"
     })
@@ -162,7 +165,8 @@ elif seccion == "Comparación 2023 vs 2024":
         "Total Monto Estimado (CLP)": "{:,} CLP",
         "Plazo Promedio (días)": "{:.2f} días"
     }))
-    st.caption("Se comparan los indicadores clave entre años: gasto total, cantidad de licitaciones únicas, diversidad de proveedores y eficiencia temporal. Esto permite evaluar la evolución del comportamiento licitatorio municipal, e identificar mejoras o retrocesos.")
+    st.caption("Esta tabla muestra la evolución entre 2023 y 2024 en gasto total, número de licitaciones únicas, diversidad de proveedores y eficiencia temporal. "
+               "Se excluyen registros con plazos negativos o nulos para asegurar la precisión del análisis.")
 
 elif seccion == "Conclusiones":
     st.header("Conclusiones y Recomendaciones")
