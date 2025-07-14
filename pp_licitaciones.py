@@ -88,9 +88,7 @@ elif seccion == "Gasto Público":
         autotext.set_fontsize(9)
     st.pyplot(fig2)
     st.caption("Se analiza qué proporción del financiamiento proviene de fondos municipales, regionales u otras fuentes. Una alta dependencia del financiamiento interno podría limitar la escala o el alcance de las licitaciones.")
-
-# ==========================
-    elif seccion == "Competitividad":
+elif seccion == "Competitividad":
     st.header("Objetivo 2: Competitividad del mercado")
 
     # ==========================
