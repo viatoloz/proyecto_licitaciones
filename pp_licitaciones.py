@@ -86,7 +86,16 @@ elif seccion == "Gasto Público":
         autotext.set_fontsize(9)
     st.pyplot(fig2)
     st.caption("El 99.8% de los recursos provienen de fondos municipales propios, lo que refleja gran autonomía pero limita el financiamiento para proyectos de gran envergadura.")
-
+ st.subheader("Distribución de financiamiento")
+    top_fin = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts().head(10)
+    otros = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts()[10:].sum()
+    top_fin["Otros"] = otros
+    fig2, ax2 = plt.subplots(figsize=(6, 6))
+    wedges, texts, autotexts = ax2.pie(
+        top_fin, labels=None, autopct='%1.1f%%', startangle=90,
+        pctdistance=1.25, labeldistance=1.4,
+        colors=sns.color_palette("RdPu", len(top_fin))
+    )
 # =============================
 # SECCIÓN: COMPETITIVIDAD
 # =============================
