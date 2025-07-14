@@ -12,7 +12,6 @@ def cargar_datos():
 
 DF = cargar_datos()
 
-# ----------- SIDEBAR -----------
 st.sidebar.title("Navegación")
 seccion = st.sidebar.radio("Ir a sección:", [
     "Introducción", "Gasto Público", "Competitividad", "Eficiencia", "Transparencia",
@@ -31,7 +30,6 @@ if selected_rubro != "Todos":
 if selected_muni != "Todos":
     df = df[df["Institucion"] == selected_muni]
 
-# ----------- DESCARGA DE DATOS ----------- 
 st.sidebar.markdown("---")
 st.sidebar.download_button(
     label="📥 Descargar datos filtrados (.csv)",
@@ -40,7 +38,6 @@ st.sidebar.download_button(
     mime="text/csv"
 )
 
-# ----------- SECCIONES -----------
 if seccion == "Introducción":
     st.title("Análisis de Licitaciones Municipales 2023–2024")
     st.markdown("""
@@ -65,19 +62,18 @@ elif seccion == "Gasto Público":
     top_fin = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts().head(10)
     otros = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts()[10:].sum()
     top_fin["Otros"] = otros
-    fig2, ax2 = plt.subplots()
+    fig2, ax2 = plt.subplots(figsize=(6, 6))
     wedges, texts, autotexts = ax2.pie(
-        top_fin, labels=top_fin.index, autopct='%1.1f%%', startangle=90,
-        pctdistance=1.15, labeldistance=1.05,
+        top_fin, labels=None, autopct='%1.1f%%', startangle=90,
+        pctdistance=1.25, labeldistance=1.4,
         colors=sns.color_palette("RdPu", len(top_fin))
     )
     ax2.set_title("Fuente de Financiamiento")
-    for text in texts:
-        text.set_fontsize(9)
+    ax2.legend(top_fin.index, loc="center left", bbox_to_anchor=(1, 0.5))
     for autotext in autotexts:
-        autotext.set_fontsize(8)
+        autotext.set_fontsize(9)
     st.pyplot(fig2)
-    st.caption("Visualizamos las 10 principales fuentes de financiamiento de las licitaciones, agrupando el resto como 'Otros'. Esto permite identificar si el financiamiento es predominantemente municipal o externo.")
+    st.caption("Visualizamos las 10 principales fuentes de financiamiento de las licitaciones, agrupando el resto como 'Otros'. Las etiquetas están fuera del gráfico para una lectura más limpia.")
 
 elif seccion == "Competitividad":
     st.header("Objetivo 2: Competitividad del mercado")
@@ -117,7 +113,6 @@ elif seccion == "Eficiencia":
 
 elif seccion == "Transparencia":
     st.header("Objetivo 4: Transparencia")
-
     st.subheader("Tipo de licitación")
     fig6, ax6 = plt.subplots()
     df["TipoLicitacion"].value_counts().plot(kind="bar", ax=ax6, color="#e75480")
@@ -129,11 +124,12 @@ elif seccion == "Transparencia":
     fig7, ax7 = plt.subplots()
     values = df["PublicidadOfertasTecnicas"].value_counts()
     wedges, texts, autotexts = ax7.pie(
-        values, labels=values.index, autopct="%1.1f%%", startangle=90,
-        pctdistance=1.15, labeldistance=1.05,
+        values, labels=None, autopct="%1.1f%%", startangle=90,
+        pctdistance=1.25, labeldistance=1.4,
         colors=sns.color_palette("pink", len(values))
     )
     ax7.set_ylabel("")
+    ax7.legend(values.index, loc="center left", bbox_to_anchor=(1, 0.5))
     st.pyplot(fig7)
     st.caption("Se observa si las instituciones publican las ofertas técnicas, lo que es un indicador clave de transparencia.")
 
@@ -162,20 +158,20 @@ elif seccion == "Comparación 2023 vs 2024":
         "Proveedor": "nunique",
         "Plazo": "mean"
     }).rename(columns={
-        "MontoEstimadoLicitacion": "Total Monto Estimado",
-        "NroLicitacion": "Total Licitaciones",
+        "MontoEstimadoLicitacion": "Total Monto Estimado (CLP)",
+        "NroLicitacion": "Licitaciones Únicas",
         "Proveedor": "Proveedores Únicos",
         "Plazo": "Plazo Promedio (días)"
     })
 
-    st.dataframe(resumen)
+    resumen["Plazo Promedio (días)"] = resumen["Plazo Promedio (días)"].round(2)
+    resumen["Total Monto Estimado (CLP)"] = resumen["Total Monto Estimado (CLP)"].astype(int)
 
-    fig_comp, ax_comp = plt.subplots()
-    resumen["Total Monto Estimado"].plot(kind="bar", ax=ax_comp, color=["#ffb6c1", "#d87093"])
-    ax_comp.set_title("Comparación de Gasto Total por Año")
-    ax_comp.set_ylabel("Monto Total Estimado")
-    st.pyplot(fig_comp)
-    st.caption("Comparación entre los años 2023 y 2024 en términos de gasto total. Permite detectar cambios de tendencia o incrementos relevantes.")
+    st.dataframe(resumen.style.format({
+        "Total Monto Estimado (CLP)": "{:,} CLP",
+        "Plazo Promedio (días)": "{:.2f} días"
+    }))
+    st.caption("Esta tabla muestra la evolución entre 2023 y 2024 en gasto total, número de licitaciones únicas, diversidad de proveedores y eficiencia temporal. Valores negativos en 'Plazo Promedio' indican errores o fechas invertidas en los datos originales.")
 
 elif seccion == "Conclusiones":
     st.header("Conclusiones y Recomendaciones")
