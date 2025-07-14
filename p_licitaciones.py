@@ -155,6 +155,9 @@ elif seccion == "Comparación 2023 vs 2024":
     df_comp["FechaAdjudicacion"] = pd.to_datetime(df_comp["FechaAdjudicacion"], errors="coerce")
     df_comp["Plazo"] = (df_comp["FechaAdjudicacion"] - df_comp["FechaPublicacion"]).dt.days
 
+    # Filtrar valores no válidos
+    df_comp = df_comp[df_comp["Plazo"].notna() & (df_comp["Plazo"] >= 0)]
+
     resumen = df_comp.groupby("Año").agg({
         "MontoEstimadoLicitacion": "sum",
         "NroLicitacion": "nunique",
@@ -174,7 +177,8 @@ elif seccion == "Comparación 2023 vs 2024":
         "Total Monto Estimado (CLP)": "{:,} CLP",
         "Plazo Promedio (días)": "{:.2f} días"
     }))
-    st.caption("Esta tabla muestra la evolución entre 2023 y 2024 en gasto total, número de licitaciones únicas, diversidad de proveedores y eficiencia temporal. Valores negativos en 'Plazo Promedio' indican errores o fechas invertidas en los datos originales.")
+    st.caption("Esta tabla muestra la evolución entre 2023 y 2024 en gasto total, número de licitaciones únicas, diversidad de proveedores y eficiencia temporal. "
+               "Se excluyen registros con plazos negativos o nulos para asegurar la precisión del análisis.")
 
 elif seccion == "Conclusiones":
     st.header("Conclusiones y Recomendaciones")
