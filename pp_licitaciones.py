@@ -67,12 +67,12 @@ elif seccion == "Gasto Público":
     top_rubros = df.groupby("RubroN1")["MontoEstimadoLicitacion"].sum().sort_values(ascending=False).head(10)
     fig1, ax1 = plt.subplots()
     top_rubros.plot(kind="bar", ax=ax1, color="#c71585")
-    ax1.set_ylabel("Monto Estimado (CLP)")
+    ax1.set_ylabel("Monto Estimado")
     ax1.set_title("Top 10 Rubros")
     st.pyplot(fig1)
-    st.caption("Los rubros con mayor gasto reflejan las prioridades estratégicas de los municipios, destacando salud, infraestructura y servicios generales.")
+    st.caption("Se identifican los rubros con mayor volumen de gasto público estimado por parte de los municipios. Esto permite evaluar si los recursos se concentran en áreas críticas como salud, transporte o equipamiento, o si existen desviaciones presupuestarias hacia rubros menos prioritarios.")
 
-   st.subheader("Distribución de financiamiento")
+    st.subheader("Distribución de financiamiento")
     top_fin = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts().head(10)
     otros = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts()[10:].sum()
     top_fin["Otros"] = otros
@@ -82,7 +82,12 @@ elif seccion == "Gasto Público":
         pctdistance=1.25, labeldistance=1.4,
         colors=sns.color_palette("RdPu", len(top_fin))
     )
-    st.caption("El 99.8% de los recursos provienen de fondos municipales propios, lo que refleja gran autonomía pero limita el financiamiento para proyectos de gran envergadura.")
+    ax2.set_title("Fuente de Financiamiento")
+    ax2.legend(top_fin.index, loc="center left", bbox_to_anchor=(1, 0.5))
+    for autotext in autotexts:
+        autotext.set_fontsize(9)
+    st.pyplot(fig2)
+    st.caption("Se analiza qué proporción del financiamiento proviene de fondos municipales, regionales u otras fuentes. Una alta dependencia del financiamiento interno podría limitar la escala o el alcance de las licitaciones.")
 
 # =============================
 # SECCIÓN: COMPETITIVIDAD
