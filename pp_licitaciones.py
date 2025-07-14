@@ -63,7 +63,6 @@ if seccion == "Introducción":
 elif seccion == "Gasto Público":
     st.header("Objetivo 1: Evaluar el gasto público")
 
-    # Top Rubros
     st.subheader("Top rubros por monto estimado")
     top_rubros = df.groupby("RubroN1")["MontoEstimadoLicitacion"].sum().sort_values(ascending=False).head(10)
     fig1, ax1 = plt.subplots()
@@ -73,7 +72,6 @@ elif seccion == "Gasto Público":
     st.pyplot(fig1)
     st.caption("Los rubros con mayor gasto reflejan las prioridades estratégicas de los municipios, destacando salud, infraestructura y servicios generales.")
 
-    # Fuente de financiamiento
     st.subheader("Distribución de financiamiento")
     top_fin = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts()
     fig2, ax2 = plt.subplots(figsize=(6, 6))
@@ -95,19 +93,35 @@ elif seccion == "Gasto Público":
 elif seccion == "Competitividad":
     st.header("Objetivo 2: Competitividad del mercado")
 
-    # Oferentes por licitación
+    # ==========================
+    # Distribución de oferentes por licitación
+    # ==========================
     st.subheader("Distribución de oferentes por licitación")
+
+    # Agrupar por número de licitación y contar proveedores únicos
     oferentes = df.groupby("NroLicitacion")["Proveedor"].nunique()
+
+    # Graficar histograma
     fig3, ax3 = plt.subplots()
     sns.histplot(oferentes, bins=30, ax=ax3, color="#db7093")
     ax3.set_title("Número de oferentes por licitación")
     st.pyplot(fig3)
-    st.caption("El promedio de oferentes por licitación es de 4.8. Sin embargo, casi el 20% de las licitaciones cuentan con un solo proveedor, lo que podría afectar la competitividad.")
+    st.caption(
+        "El promedio general es de 4.8 oferentes por licitación. Sin embargo, alrededor del 20% tienen solo un participante, "
+        "lo que podría indicar baja competitividad o barreras de entrada para nuevos proveedores."
+    )
 
-    # Adjudicaciones por tamaño
+    # ==========================
+    # Adjudicaciones por tamaño de proveedor
+    # ==========================
     st.subheader("Adjudicaciones por tamaño de proveedor")
+
+    # Filtrar adjudicaciones
     df_adjudicada = df[df["ResultadoOferta"] == "Adjudicada"]
+
+    # Calcular porcentaje adjudicado por tamaño
     tamano = df_adjudicada["TamanoProveedor"].value_counts(normalize=True) * 100
+
     if tamano.empty:
         st.warning("No hay datos de adjudicaciones disponibles para los filtros seleccionados.")
     else:
@@ -115,17 +129,34 @@ elif seccion == "Competitividad":
         tamano.plot(kind="barh", ax=ax4, color="#ba55d3")
         ax4.set_title("% Adjudicado por Tamaño de Proveedor")
         st.pyplot(fig4)
-        st.caption("Las grandes empresas concentran el 56% de las adjudicaciones, lo que muestra barreras para PYMES y menor diversidad en la contratación.")
+        st.caption(
+            "Se observa que las grandes empresas concentran aproximadamente el 56% de las adjudicaciones, "
+            "mientras que las PYMES tienen menor participación, mostrando dificultades para competir."
+        )
 
-    # Top proveedores
+    # ==========================
+    # Top 10 proveedores adjudicados
+    # ==========================
     st.subheader("Top 10 proveedores adjudicados")
+
+    # Contar adjudicaciones por proveedor
     top_proveedores = df_adjudicada["Proveedor"].value_counts().head(10)
+
+    # Pasar a DataFrame para evitar errores de plot
+    df_top_prov = top_proveedores.reset_index()
+    df_top_prov.columns = ["Proveedor", "Adjudicaciones"]
+
+    # Graficar
     fig5, ax5 = plt.subplots()
-    top_proveedores.plot(kind="bar", ax=ax5, color="#9932CC")
+    ax5.bar(df_top_prov["Proveedor"], df_top_prov["Adjudicaciones"], color="#9932CC")
     ax5.set_ylabel("Cantidad de adjudicaciones")
-    ax5.set_title("Principales proveedores adjudicados")
+    ax5.set_title("Top 10 proveedores adjudicados")
+    ax5.tick_params(axis='x', rotation=45, ha='right')
     st.pyplot(fig5)
-    st.caption("Concentrar adjudicaciones en pocos proveedores puede aumentar riesgos de dependencia y reducir eficiencia económica.")
+    st.caption(
+        "Aquí se identifican los proveedores con mayor número de adjudicaciones. Concentrar en pocos proveedores puede reducir eficiencia, "
+        "incrementar riesgos de dependencia y dificultar la participación de nuevos actores en el mercado público."
+    )
 
 # =============================
 # SECCIÓN: EFICIENCIA
