@@ -79,7 +79,6 @@ elif seccion == "Gasto Público":
     st.caption("Rubros con mayor gasto público estimado, destacando sectores como salud, infraestructura y servicios generales.")
 
     st.divider()
-
     st.subheader("💰 Distribución de financiamiento")
     top_fin = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts().head(10)
     otros = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts()[10:].sum()
@@ -88,12 +87,15 @@ elif seccion == "Gasto Público":
     wedges, texts, autotexts = ax2.pie(
         top_fin, labels=None, autopct='%1.1f%%', startangle=90,
         pctdistance=1.25, labeldistance=1.4,
-        colors=PALETA_PASTEL
+        colors=sns.color_palette("RdPu", len(top_fin))
     )
     ax2.set_title("Fuente de Financiamiento")
     ax2.legend(top_fin.index, loc="center left", bbox_to_anchor=(1, 0.5))
+    for autotext in autotexts:
+        autotext.set_fontsize(9)
     st.pyplot(fig2)
-    st.caption("La mayoría del financiamiento proviene de fondos municipales (99.8%), lo que limita la escala de los proyectos.")
+    st.caption("Se analiza qué proporción del financiamiento proviene de fondos municipales, regionales u otras fuentes. Una alta dependencia del financiamiento interno podría limitar la escala o el alcance de las licitaciones.")
+
 
 # =============================
 # SECCIÓN: COMPETITIVIDAD
