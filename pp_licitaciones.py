@@ -2,43 +2,41 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import plotly.express as px
 
 # =============================
-# CONFIGURACIÓN GENERAL
+# CONFIGURACIÓN GENERAL Y ESTILO
 # =============================
 st.set_page_config(page_title="Análisis Licitaciones", layout="wide")
-plt.style.use("seaborn-v0_8-colorblind")
+
+# Estilo gráfico con tonos lila y palo rosa
+PALETA_PASTEL = ["#d8bfd8", "#dda0dd", "#e6a9ec", "#e5bcd1", "#f7d6e0"]  # tonos pastel
+plt.style.use("seaborn-v0_8-muted")  # estilo suave
 
 # =============================
-# FUNCIÓN PARA CARGAR DATOS
+# CARGA DE DATOS
 # =============================
 @st.cache_data
 def cargar_datos():
-    """
-    Carga el archivo parquet con datos de licitaciones y lo devuelve como DataFrame.
-    """
     return pd.read_parquet("data_licitaciones_2023_2024_reducido.parquet")
 
 DF = cargar_datos()
 
 # =============================
-# CONFIGURACIÓN DE FILTROS LATERALES
+# SIDEBAR Y FILTROS
 # =============================
-st.sidebar.title("Navegación")
+st.sidebar.image("logo_ust.png", width=180)  # Logo UST
+st.sidebar.title("📊 Navegación")
+
 seccion = st.sidebar.radio("Ir a sección:", [
     "Introducción", "Gasto Público", "Competitividad", "Eficiencia", "Transparencia",
-    "Municipios", "Comparación 2023 vs 2024", "Conclusiones y Propuestas"
+    "Municipios", "Comparación 2023 vs 2024", "Conclusiones"
 ])
 
 st.sidebar.markdown("---")
-selected_year = st.sidebar.selectbox("Selecciona el año", sorted(DF["Año"].unique()))
-selected_rubro = st.sidebar.selectbox("Filtrar por Rubro (opcional)", ["Todos"] + sorted(DF["RubroN1"].dropna().unique()))
-selected_muni = st.sidebar.selectbox("Filtrar por Municipio (opcional)", ["Todos"] + sorted(DF["Institucion"].dropna().unique()))
+selected_year = st.sidebar.selectbox("📅 Selecciona el año", sorted(DF["Año"].unique()))
+selected_rubro = st.sidebar.selectbox("🏷️ Filtrar por Rubro (opcional)", ["Todos"] + sorted(DF["RubroN1"].dropna().unique()))
+selected_muni = st.sidebar.selectbox("🏛️ Filtrar por Municipio (opcional)", ["Todos"] + sorted(DF["Institucion"].dropna().unique()))
 
-# =============================
-# APLICAR FILTROS
-# =============================
 df = DF.copy()
 df = df[df["Año"] == selected_year]
 if selected_rubro != "Todos":
@@ -50,29 +48,39 @@ if selected_muni != "Todos":
 # SECCIÓN: INTRODUCCIÓN
 # =============================
 if seccion == "Introducción":
-    st.title("Análisis de Licitaciones Municipales 2023–2024")
+    st.image("logo_ust.png", width=200)
+
+    st.title("📘 Análisis de Licitaciones Municipales 2023–2024")
     st.markdown("""
-    Este proyecto analiza los procesos de licitación municipal en Chile entre 2023 y 2024. 
-    Se evalúan los montos adjudicados, la eficiencia del proceso, la competencia entre oferentes 
-    y los niveles de transparencia de las instituciones municipales.
+    Bienvenido al panel interactivo de análisis de licitaciones públicas realizadas por municipalidades de Chile entre 2023 y 2024.
+
+    🔍 **Objetivo**: Evaluar la eficiencia, transparencia y competitividad del proceso de contratación pública.
+
+    🧠 **¿Por qué es importante?**  
+    Porque una licitación transparente y eficiente permite un mejor uso de los recursos públicos y una mayor participación de proveedores, incluyendo PYMES.
+
+    📌 Este proyecto forma parte del curso *Business Intelligence* de la Universidad Santo Tomás.
     """)
+    st.divider()
 
 # =============================
 # SECCIÓN: GASTO PÚBLICO
 # =============================
 elif seccion == "Gasto Público":
-    st.header("Objetivo 1: Evaluar el gasto público")
+    st.header("💸 Objetivo 1: Evaluar el gasto público")
 
-    st.subheader("Top rubros por monto estimado")
+    st.subheader("🏷️ Top rubros por monto estimado")
     top_rubros = df.groupby("RubroN1")["MontoEstimadoLicitacion"].sum().sort_values(ascending=False).head(10)
     fig1, ax1 = plt.subplots()
-    top_rubros.plot(kind="bar", ax=ax1, color="#c71585")
+    top_rubros.plot(kind="bar", ax=ax1, color=PALETA_PASTEL[0])
     ax1.set_ylabel("Monto Estimado")
     ax1.set_title("Top 10 Rubros")
     st.pyplot(fig1)
-    st.caption("Se identifican los rubros con mayor volumen de gasto público estimado por parte de los municipios. Esto permite evaluar si los recursos se concentran en áreas críticas como salud, transporte o equipamiento, o si existen desviaciones presupuestarias hacia rubros menos prioritarios.")
+    st.caption("Rubros con mayor gasto público estimado, destacando sectores como salud, infraestructura y servicios generales.")
 
-    st.subheader("Distribución de financiamiento")
+    st.divider()
+
+    st.subheader("💰 Distribución de financiamiento")
     top_fin = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts().head(10)
     otros = df["FuenteFinanciamiento"].fillna("Desconocido").value_counts()[10:].sum()
     top_fin["Otros"] = otros
@@ -80,141 +88,104 @@ elif seccion == "Gasto Público":
     wedges, texts, autotexts = ax2.pie(
         top_fin, labels=None, autopct='%1.1f%%', startangle=90,
         pctdistance=1.25, labeldistance=1.4,
-        colors=sns.color_palette("RdPu", len(top_fin))
+        colors=PALETA_PASTEL
     )
     ax2.set_title("Fuente de Financiamiento")
     ax2.legend(top_fin.index, loc="center left", bbox_to_anchor=(1, 0.5))
-    for autotext in autotexts:
-        autotext.set_fontsize(9)
     st.pyplot(fig2)
-    st.caption("Se analiza qué proporción del financiamiento proviene de fondos municipales, regionales u otras fuentes. Una alta dependencia del financiamiento interno podría limitar la escala o el alcance de las licitaciones.")
+    st.caption("La mayoría del financiamiento proviene de fondos municipales (99.8%), lo que limita la escala de los proyectos.")
+
+# =============================
+# SECCIÓN: COMPETITIVIDAD
+# =============================
 elif seccion == "Competitividad":
-    st.header("Objetivo 2: Competitividad del mercado")
+    st.header("📈 Objetivo 2: Competitividad del mercado")
 
-    # ==========================
-    # Distribución de oferentes por licitación
-    # ==========================
-    st.subheader("Distribución de oferentes por licitación")
-
-    # Agrupar por número de licitación y contar proveedores únicos
+    st.subheader("👥 Distribución de oferentes por licitación")
     oferentes = df.groupby("NroLicitacion")["Proveedor"].nunique()
-
-    # Graficar histograma
     fig3, ax3 = plt.subplots()
-    sns.histplot(oferentes, bins=30, ax=ax3, color="#db7093")
+    sns.histplot(oferentes, bins=30, ax=ax3, color=PALETA_PASTEL[1])
     ax3.set_title("Número de oferentes por licitación")
     st.pyplot(fig3)
-    st.caption(
-        "El promedio general es de 4.8 oferentes por licitación. Sin embargo, alrededor del 20% tienen solo un participante, "
-        "lo que podría indicar baja competitividad o barreras de entrada para nuevos proveedores."
-    )
+    st.caption("Casi el 20% de licitaciones tienen un solo oferente, lo cual puede indicar baja competencia.")
 
-    # ==========================
-    # Adjudicaciones por tamaño de proveedor
-    # ==========================
-    st.subheader("Adjudicaciones por tamaño de proveedor")
+    st.divider()
 
-    # Filtrar adjudicaciones
+    st.subheader("🏢 Adjudicaciones por tamaño de proveedor")
     df_adjudicada = df[df["ResultadoOferta"] == "Adjudicada"]
-
-    # Calcular porcentaje adjudicado por tamaño
     tamano = df_adjudicada["TamanoProveedor"].value_counts(normalize=True) * 100
-
     if tamano.empty:
         st.warning("No hay datos de adjudicaciones disponibles para los filtros seleccionados.")
     else:
         fig4, ax4 = plt.subplots()
-        tamano.plot(kind="barh", ax=ax4, color="#ba55d3")
+        tamano.plot(kind="barh", ax=ax4, color=PALETA_PASTEL[2])
         ax4.set_title("% Adjudicado por Tamaño de Proveedor")
         st.pyplot(fig4)
-        st.caption(
-            "Se observa que las grandes empresas concentran aproximadamente el 56% de las adjudicaciones, "
-            "mientras que las PYMES tienen menor participación, mostrando dificultades para competir."
-        )
-
-    # ==========================
-    # Top 10 proveedores adjudicados
-    # ==========================
-    st.subheader("Top 10 proveedores adjudicados")
-
-    # Contar adjudicaciones por proveedor
-    top_proveedores = df_adjudicada["Proveedor"].value_counts().head(10)
-
-    # Pasar a DataFrame para evitar errores
-    df_top_prov = top_proveedores.reset_index()
-    df_top_prov.columns = ["Proveedor", "Adjudicaciones"]
-
-    # Graficar manualmente
-    fig5, ax5 = plt.subplots()
-    ax5.bar(df_top_prov["Proveedor"], df_top_prov["Adjudicaciones"], color="#9932CC")
-    ax5.set_ylabel("Cantidad de adjudicaciones")
-    ax5.set_title("Top 10 proveedores adjudicados")
-    ax5.tick_params(axis='x', rotation=45, ha='right')
-    st.pyplot(fig5)
-    st.caption(
-        "Aquí se identifican los proveedores con mayor número de adjudicaciones. Concentrar en pocos proveedores puede reducir eficiencia, "
-        "incrementar riesgos de dependencia y dificultar la participación de nuevos actores en el mercado público."
-    )
+        st.caption("Las grandes empresas concentran el 56% de las adjudicaciones. Las PYMES siguen en desventaja.")
 
 # =============================
 # SECCIÓN: EFICIENCIA
 # =============================
 elif seccion == "Eficiencia":
-    st.header("Objetivo 3: Eficiencia del proceso")
+    st.header("⏱️ Objetivo 3: Eficiencia del proceso")
+
     df["FechaPublicacion"] = pd.to_datetime(df["FechaPublicacion"], errors="coerce")
     df["FechaAdjudicacion"] = pd.to_datetime(df["FechaAdjudicacion"], errors="coerce")
     df["Plazo"] = (df["FechaAdjudicacion"] - df["FechaPublicacion"]).dt.days
 
-    fig6, ax6 = plt.subplots()
-    sns.histplot(df["Plazo"].dropna(), bins=30, ax=ax6, color="#cc66cc")
-    ax6.set_title("Días entre publicación y adjudicación")
-    st.pyplot(fig6)
-    st.caption("El plazo promedio entre publicación y adjudicación es de 39-45 días. Las licitaciones multietapa son hasta 70% más lentas, lo que sugiere áreas de mejora en eficiencia.")
+    fig5, ax5 = plt.subplots()
+    sns.histplot(df["Plazo"].dropna(), bins=30, ax=ax5, color=PALETA_PASTEL[3])
+    ax5.set_title("Días entre publicación y adjudicación")
+    st.pyplot(fig5)
+    st.caption("El plazo promedio es de 39 a 45 días. Las licitaciones multietapa demoran un 70% más que las simples.")
 
 # =============================
 # SECCIÓN: TRANSPARENCIA
 # =============================
 elif seccion == "Transparencia":
-    st.header("Objetivo 4: Transparencia")
+    st.header("🔎 Objetivo 4: Transparencia")
 
-    st.subheader("Tipo de licitación")
+    st.subheader("📄 Tipo de licitación")
+    fig6, ax6 = plt.subplots()
+    df["TipoLicitacion"].value_counts().plot(kind="bar", ax=ax6, color=PALETA_PASTEL[4])
+    ax6.set_title("Distribución de tipos de licitación")
+    st.pyplot(fig6)
+    st.caption("99.95% de las licitaciones son públicas, lo que refleja transparencia formal, pero no sustantiva.")
+
+    st.divider()
+
+    st.subheader("📢 Publicación de ofertas técnicas")
     fig7, ax7 = plt.subplots()
-    df["TipoLicitacion"].value_counts().plot(kind="bar", ax=ax7, color="#e75480")
-    ax7.set_title("Distribución de tipos de licitación")
-    st.pyplot(fig7)
-    st.caption("El 99.95% de las licitaciones son públicas, lo que indica alto cumplimiento formal en transparencia.")
-
-    st.subheader("Publicidad de ofertas técnicas")
-    fig8, ax8 = plt.subplots()
     values = df["PublicidadOfertasTecnicas"].value_counts()
-    wedges, texts, autotexts = ax8.pie(
+    wedges, texts, autotexts = ax7.pie(
         values, labels=None, autopct="%1.1f%%", startangle=90,
         pctdistance=1.25, labeldistance=1.4,
-        colors=sns.color_palette("pink", len(values))
+        colors=PALETA_PASTEL
     )
-    ax8.legend(values.index, loc="center left", bbox_to_anchor=(1, 0.5))
-    st.pyplot(fig8)
-    st.caption("Solo el 37% de las licitaciones incluyen justificación detallada del monto estimado, generando dudas sobre la rendición de cuentas.")
+    ax7.legend(values.index, loc="center left", bbox_to_anchor=(1, 0.5))
+    st.pyplot(fig7)
+    st.caption("Solo el 37% de licitaciones publican su evaluación técnica, un punto débil en la rendición de cuentas.")
 
 # =============================
 # SECCIÓN: MUNICIPIOS
 # =============================
 elif seccion == "Municipios":
-    st.header("Análisis por Municipio")
-    st.subheader("Top 10 Municipios por Monto Estimado")
+    st.header("🏙️ Análisis por Municipio")
+    st.subheader("🏆 Top 10 Municipios por Monto Estimado")
     top_muni = df.groupby("Institucion")["MontoEstimadoLicitacion"].sum().sort_values(ascending=False).head(10)
     fig_muni, ax_muni = plt.subplots()
-    top_muni.plot(kind="barh", ax=ax_muni, color="#da70d6")
-    ax_muni.set_title("Top 10 Municipios por Gasto Estimado")
-    ax_muni.set_xlabel("Monto Estimado (CLP)")
+    top_muni.plot(kind="barh", ax=ax_muni, color=PALETA_PASTEL[0])
+    ax_muni.set_title("Top 10 Instituciones por Monto Total Estimado")
+    ax_muni.set_xlabel("Monto Estimado")
     st.pyplot(fig_muni)
-    st.caption("Municipios como La Cisterna y Concepción concentran grandes montos en pocas licitaciones, mientras que otros priorizan volumen sobre valor unitario.")
+    st.caption("Municipios como La Cisterna y Concepción concentran el mayor volumen de gasto estimado.")
 
 # =============================
-# SECCIÓN: COMPARACIÓN 2023 vs 2024
+# SECCIÓN: COMPARACIÓN ANUAL
 # =============================
 elif seccion == "Comparación 2023 vs 2024":
-    st.header("Comparación entre Años: 2023 vs 2024")
+    st.header("📊 Comparación entre Años: 2023 vs 2024")
+
     df_comp = DF.copy()
     df_comp["FechaPublicacion"] = pd.to_datetime(df_comp["FechaPublicacion"], errors="coerce")
     df_comp["FechaAdjudicacion"] = pd.to_datetime(df_comp["FechaAdjudicacion"], errors="coerce")
@@ -240,19 +211,29 @@ elif seccion == "Comparación 2023 vs 2024":
         "Total Monto Estimado (CLP)": "{:,} CLP",
         "Plazo Promedio (días)": "{:.2f} días"
     }))
-    st.caption("Comparativa de gasto, cantidad de licitaciones, diversidad de proveedores y eficiencia temporal entre los dos años.")
+    st.caption("Se observa una mejora de eficiencia y aumento en diversidad de proveedores en 2024.")
 
 # =============================
-# SECCIÓN: CONCLUSIONES Y PROPUESTAS
+# SECCIÓN: CONCLUSIONES
 # =============================
-elif seccion == "Conclusiones y Propuestas":
-    st.header("Conclusiones y Recomendaciones")
+elif seccion == "Conclusiones":
+    st.header("🧾 Conclusiones y Recomendaciones")
+    st.markdown("## ✅ Principales Hallazgos")
     st.markdown("""
-    - Mejorar trazabilidad y validación de datos para reducir inconsistencias.
-    - Promover políticas que fomenten mayor participación de PYMES.
-    - Optimizar los tiempos de adjudicación, especialmente en procesos multietapa.
-    - Fortalecer mecanismos de transparencia activa, especialmente en justificación de montos.
-    - Integrar análisis poblacional para medir gasto per cápita por comuna.
-    - Desarrollar alertas automáticas para identificar concentración excesiva en pocos proveedores.
+    - 🏢 **Financiamiento**: El 99.8% proviene de fondos propios municipales.
+    - 💰 **Gasto**: Rubros como infraestructura concentran la mayoría del presupuesto.
+    - 🏆 **Competencia**: Las grandes empresas tienen mayor tasa de adjudicación.
+    - ⏱️ **Eficiencia**: Mejora en plazos entre 2023 y 2024.
+    - 🔍 **Transparencia**: Falta justificación en muchos procesos.
     """)
-
+    st.divider()
+    st.markdown("## 🛠️ Recomendaciones")
+    st.markdown("""
+    - 🔄 Mejorar la trazabilidad y validación de los datos.
+    - 📢 Publicar la justificación de montos en todas las licitaciones.
+    - 🤝 Incluir más PYMES mediante incentivos y difusión.
+    - 📍 Incorporar población para gasto per cápita.
+    - 🚨 Crear alertas de concentración o proveedor único.
+    """)
+    st.image("logo_ust.png", width=150)
+    st.markdown("**Universidad Santo Tomás – Escuela de Auditoría y Control de Gestión**")
