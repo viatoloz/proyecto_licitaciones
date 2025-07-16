@@ -162,11 +162,12 @@ elif seccion == "Transparencia":
     wedges, texts, autotexts = ax7.pie(
         values, labels=None, autopct="%1.1f%%", startangle=90,
         pctdistance=1.25, labeldistance=1.4,
-        colors=PALETA_PASTEL
+        colors=sns.color_palette("pink", len(values))
     )
+    ax7.set_ylabel("")
     ax7.legend(values.index, loc="center left", bbox_to_anchor=(1, 0.5))
     st.pyplot(fig7)
-    st.caption("Solo el 37% de licitaciones publican su evaluación técnica, un punto débil en la rendición de cuentas.")
+    st.caption("Este gráfico refleja si los municipios están haciendo pública la evaluación técnica de las ofertas, un elemento clave de transparencia. La falta de publicación puede limitar la fiscalización y el control social.")
 
 # =============================
 # SECCIÓN: MUNICIPIOS
